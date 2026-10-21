@@ -1,3 +1,19 @@
+/* Design tokens from DESIGN.md 2.2 (Style Guide HEX values). */
+:root {
+  --ink: #171717;
+  --paper: #ffffff;
+  --turquoise: #00b8c8;
+  --lemon: #ffe600;
+  --pink: #ff00a8;
+
+  --radius: 16px;
+  --outline: 2px solid var(--ink);
+  --shadow-offset: 4px 4px 0;
+
+  --font-heading: var(--font-rubik), system-ui, sans-serif;
+  --font-body: var(--font-heebo), system-ui, sans-serif;
+}
+
 *,
 *::before,
 *::after {
@@ -11,11 +27,11 @@ body {
 }
 
 body {
-  background: #ffffff;
-  color: #171717;
-  /* Temporary system font; Rubik and Heebo are added in Milestone 2. */
-  font-family: system-ui, -apple-system, "Segoe UI", Arial, sans-serif;
-  line-height: 1.5;
+  background: var(--paper);
+  color: var(--ink);
+  font-family: var(--font-body);
+  font-size: 18px;
+  line-height: 28px;
 }
 
 button,

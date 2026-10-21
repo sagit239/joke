@@ -1,6 +1,8 @@
 import type { ErrorCode, ErrorResponse, JokeSuccess } from "@/lib/contracts";
 import { AppError, statusByCode } from "@/server/errors";
 import { createJoke } from "@/server/jokeService";
+import { logRequest } from "@/server/log";
+import { validateJokeRequest } from "@/server/validation";
 
 export const runtime = "nodejs";
 export const maxDuration = 30;
@@ -15,33 +17,24 @@ function errorResponse(code: ErrorCode, extraHeaders: Record<string, string> = {
   });
 }
 
-// Milestone 2 replaces this with full validation (Origin, size, media type,
-// NFC normalization). For now it only extracts a string topic.
-async function readTopic(request: Request): Promise<string> {
-  try {
-    const body: unknown = await request.json();
-    if (typeof body === "object" && body !== null && "topic" in body) {
-      const topic = (body as { topic: unknown }).topic;
-      return typeof topic === "string" ? topic.trim() : "";
-    }
-  } catch {
-    // Ignored in Milestone 1: an unreadable body is treated as an empty topic.
-  }
-  return "";
-}
-
 export async function POST(request: Request) {
+  const requestId = crypto.randomUUID();
+  const startedAt = Date.now();
   try {
-    const topic = await readTopic(request);
-    const joke = await createJoke(topic);
+    const topic = await validateJokeRequest(request);
+    const { joke, usage } = await createJoke(topic);
     const body: JokeSuccess = { joke };
+    logRequest({ requestId, statusCode: 200, durationMs: Date.now() - startedAt, usage });
     return Response.json(body, { status: 200, headers: baseHeaders });
   } catch (error) {
-    if (error instanceof AppError) {
-      return errorResponse(error.code);
-    }
-    console.error("joke_request_failed", { name: (error as Error)?.name });
-    return errorResponse("GENERATION_FAILED");
+    const code: ErrorCode = error instanceof AppError ? error.code : "GENERATION_FAILED";
+    logRequest({
+      requestId,
+      statusCode: statusByCode[code],
+      errorCode: code,
+      durationMs: Date.now() - startedAt,
+    });
+    return errorResponse(code);
   }
 }
 

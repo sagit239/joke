@@ -4,6 +4,7 @@ import { useRef, useState, type FormEvent } from "react";
 import type { JokeRequest } from "@/lib/contracts";
 import { interpretResponse, parseBody } from "@/lib/interpretResponse";
 import { messages } from "@/lib/messages";
+import { MAX_TOPIC_CODE_POINTS, normalizeTopic } from "@/lib/normalizeTopic";
 import styles from "./page.module.css";
 
 type Status = "idle" | "loading" | "success" | "rejected" | "error";
@@ -24,7 +25,8 @@ export default function JokeForm() {
     setJoke("");
 
     try {
-      const payload: JokeRequest = { topic };
+      // Snapshot of the topic at submit time; the input keeps what the user typed.
+      const payload: JokeRequest = { topic: normalizeTopic(topic) };
       const response = await fetch("/api/joke", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -63,7 +65,7 @@ export default function JokeForm() {
           className={styles.input}
           type="text"
           value={topic}
-          maxLength={200}
+          maxLength={MAX_TOPIC_CODE_POINTS}
           autoComplete="off"
           disabled={isLoading}
           onChange={(event) => setTopic(event.target.value)}
