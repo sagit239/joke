@@ -1,5 +1,5 @@
 import "server-only";
-import OpenAI, { APIError } from "openai";
+import OpenAI, { APIConnectionTimeoutError, APIError, APIUserAbortError } from "openai";
 import { getConfig } from "./config";
 import {
   JOKE_INSTRUCTIONS,
@@ -25,11 +25,22 @@ export interface AiProvider {
 // Minimal surface of the SDK client that the adapter uses (lets tests inject a fake).
 export type OpenAIClient = Pick<OpenAI, "responses" | "moderations">;
 
-// Basic provider error mapping (full coverage is Milestone 3).
-function mapProviderError(error: unknown): AppError {
+// Maps any provider failure to an app error code (ARCHITECTURE.md 2.5, 2.7).
+// The original SDK error is never passed on or logged.
+function mapProviderError(error: unknown, signal: AbortSignal): AppError {
   if (error instanceof AppError) return error;
+  // Anything caused by the shared deadline is a timeout, not a generic failure.
+  if (
+    signal.aborted ||
+    error instanceof APIConnectionTimeoutError ||
+    error instanceof APIUserAbortError ||
+    (error instanceof Error && (error.name === "AbortError" || error.name === "TimeoutError"))
+  ) {
+    return new AppError("GENERATION_TIMEOUT");
+  }
   if (error instanceof APIError) {
     // 401 bad key; 429 insufficient_quota when the OpenAI balance is used up.
+    // Other 429s (provider load) and 5xx are generation failures, not RATE_LIMITED.
     if (error.status === 401 || (error.status === 429 && error.code === "insufficient_quota")) {
       return new AppError("SERVICE_UNAVAILABLE");
     }
@@ -70,7 +81,7 @@ export function createProvider(client: OpenAIClient, model: string): AiProvider 
         if (!result) throw new AppError("GENERATION_FAILED");
         return { result, usage };
       } catch (error) {
-        throw mapProviderError(error);
+        throw mapProviderError(error, signal);
       }
     },
 
@@ -84,7 +95,7 @@ export function createProvider(client: OpenAIClient, model: string): AiProvider 
         if (typeof flagged !== "boolean") throw new AppError("GENERATION_FAILED");
         return flagged;
       } catch (error) {
-        throw mapProviderError(error);
+        throw mapProviderError(error, signal);
       }
     },
   };

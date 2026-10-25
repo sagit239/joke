@@ -5,6 +5,10 @@
   margin-inline: auto;
   padding-inline: 16px;
   padding-block: 32px;
+  /* Plain backdrop so the confetti background never runs behind text. */
+  background-color: #fff8cc;
+  box-shadow: 0 0 0 16px #fff8cc;
+  border-radius: 24px;
 }
 
 .title {

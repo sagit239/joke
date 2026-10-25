@@ -26,8 +26,11 @@ body {
   padding: 0;
 }
 
+/* Playful background: pale lemon with a repeating confetti tile in the palette colors. */
 body {
-  background: var(--paper);
+  background-color: #fff8cc;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='260' height='260' viewBox='0 0 260 260'%3E%3Cg stroke='%23171717' stroke-width='1.5' stroke-linejoin='round' stroke-linecap='round'%3E%3Ccircle cx='24' cy='30' r='7' fill='%23FF00A8'/%3E%3Ccircle cx='196' cy='52' r='5' fill='%2300B8C8'/%3E%3Ccircle cx='120' cy='214' r='6' fill='%238CD211'/%3E%3Ccircle cx='238' cy='186' r='4' fill='%23F44343'/%3E%3Cpath d='M98 26l4 9 10 1-7 7 2 10-9-5-9 5 2-10-7-7 10-1z' fill='%23FFE600'/%3E%3Cpath d='M214 118l3 7 8 1-6 5 2 8-7-4-7 4 2-8-6-5 8-1z' fill='%23FFE600'/%3E%3Crect x='40' y='128' width='14' height='14' rx='3' transform='rotate(20 47 135)' fill='%2300A9E8'/%3E%3Cpath d='M150 120l9 15h-18z' fill='%238B5CC7'/%3E%3Cpath d='M30 214q8-10 16 0t16 0' fill='none' stroke='%23FF00A8' stroke-width='3'/%3E%3Cpath d='M150 40q8-10 16 0t16 0' fill='none' stroke='%2300B8C8' stroke-width='3'/%3E%3Cpath d='M190 230q8-10 16 0t16 0' fill='none' stroke='%238B5CC7' stroke-width='3'/%3E%3C/g%3E%3C/svg%3E");
+  background-size: 260px 260px;
   color: var(--ink);
   font-family: var(--font-body);
   font-size: 18px;

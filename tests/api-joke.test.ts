@@ -1,4 +1,5 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
+import { AppError } from "@/server/errors";
 import type { AiProvider } from "@/server/openaiAdapter";
 
 const JOKE = "למה הכלב ישב ליד המחשב?\nכי הוא חיפש את העכבר.";
@@ -117,6 +118,20 @@ describe("POST /api/joke", () => {
     const text = await response.text();
     expect(response.status).toBe(502);
     expect(text).not.toContain("secret internal detail");
+    expect(loggedText()).not.toContain("secret internal detail");
+  });
+
+  it.each([
+    ["GENERATION_FAILED", 502],
+    ["SERVICE_UNAVAILABLE", 503],
+    ["GENERATION_TIMEOUT", 504],
+  ] as const)("returns %s as a bare error code with no-store", async (code, status) => {
+    provider.generate.mockRejectedValue(new AppError(code));
+    const response = await POST(postRequest({ topic: "כלבים" }));
+    expect(response.status).toBe(status);
+    expect(response.headers.get("Cache-Control")).toBe("no-store");
+    expect(await response.json()).toEqual({ error: { code } });
+    expect(provider.generate).toHaveBeenCalledTimes(1);
   });
 });
 
