@@ -276,3 +276,8 @@ Manifest מוגש באמצעות התמיכה המובנית של Next.js וכו
 **הקשר:** ADR-4 משווה את ה־Origin ל־Host של הבקשה, אך לא קבע מאיפה נלקח ה־Host.
 **החלטה:** נלקח מכותרת `Host`, ואם היא חסרה, מכתובת הבקשה. ההשוואה היא על host כולל פורט.
 **השלכות:** עובד מקומית ומטלפון ברשת הביתית. ב־Vercel יש לאמת באבן הדרך של הפריסה שכותרת `Host` תואמת את הדומיין הציבורי.
+
+### ADR-10: CSP קבוע ללא Nonce, והגדרות פריסה ב־vercel.json
+**הקשר:** סעיף 2.8 דורש Content Security Policy „בהתאם לנכסי Next.js”. Next.js מוסיף Scripts קטנים בתוך הדף; CSP מבוסס Nonce מחייב רינדור דינמי של כל עמוד דרך Proxy. בנוסף, 2.10 דורש ש־Build ב־Vercel יריץ את `npm run check` ושלא ייווצרו Preview Deployments.
+**החלטה:** CSP קבוע ב־`next.config.ts` (דרך `src/securityHeaders.ts`) עם `'unsafe-inline'` ל־Scripts ול־Styles, `connect-src`/`font-src`/`default-src 'self'`, `object-src 'none'` ו־`frame-ancestors 'none'`; `'unsafe-eval'` נוסף רק במצב פיתוח. לצידו `X-Frame-Options: DENY`, `X-Content-Type-Options: nosniff` ו־`Referrer-Policy: strict-origin-when-cross-origin`. אין `upgrade-insecure-requests` ואין HSTS בקוד — Vercel מעביר ל־HTTPS ומוסיף HSTS בעצמו. `vercel.json` קובע `npm ci`, `buildCommand: "npm run check"` ו־`git.deploymentEnabled` שמאפשר פריסה רק מ־`main`.
+**השלכות:** הדף נשאר סטטי ופשוט. הדפדפן אינו יכול לטעון Scripts או לפנות לשום מקור חיצוני, אך CSP אינו חוסם Script בתוך הדף — ההגנה מפני הזרקה נשענת על הצגת הבדיחה כטקסט בלבד (Milestone 3). בדיקה מקומית ב־HTTP מטלפון אינה נשברת.
